@@ -385,8 +385,8 @@ bgdawp=${postprd_dir}/${NET}.t${cyc}z.bgdawpf${fhr}.${tmmark}.grib2
 bgrd3d=${postprd_dir}/${NET}.t${cyc}z.bgrd3df${fhr}.${tmmark}.grib2
 bgsfc=${postprd_dir}/${NET}.t${cyc}z.bgsfcf${fhr}.${tmmark}.grib2
 
-wgrib2 PRSLEV.GrbF${post_fhr} -set center 7 -grib ${bgdawp}
-wgrib2 NATLEV.GrbF${post_fhr} -set center 7 -grib ${bgrd3d}
+wgrib2 BGDAWP.GrbF${post_fhr} -set center 7 -grib ${bgdawp}
+wgrib2 BGRD3D.GrbF${post_fhr} -set center 7 -grib ${bgrd3d}
 
 #
 #-----------------------------------------------------------------------
