@@ -9,12 +9,16 @@ if [[ $MACHINE == "jet" ]] ; then
     PARTITION_GRAPHICS=kjet
     PARTITION_ANALYSIS=kjet
     PARTITION_PRDGEN=kjet
+    PARTITION_MINT=kjet
+    PARTITION_MAXT=kjet
     PARTITION_POST=kjet
     PARTITION_HPSS=service
     QUEUE_DEFAULT="rth"
     QUEUE_FCST="rth"
     QUEUE_ANALYSIS="rth"
     QUEUE_PRDGEN="rt"
+    QUEUE_MINT="rt"
+    QUEUE_MAXT="rt"
     QUEUE_GRAPHICS="rt"
     QUEUE_HPSS="batch"
     QUEUE_POST="rt"
@@ -34,6 +38,8 @@ if [[ $MACHINE == "hera" ]] ; then
   PARTITION_FCST=""
   QUEUE_ANALYSIS="batch"
   QUEUE_PRDGEN="batch"
+  QUEUE_MINT="batch"
+  QUEUE_MAXT="batch"
   QUEUE_GRAPHICS="batch"
 fi
 
@@ -42,6 +48,8 @@ if [[ $MACHINE == "orion" ]] ; then
   PARTITION_ANALYSIS=orion
   QUEUE_ANALYSIS="batch"
   QUEUE_PRDGEN="batch"
+  QUEUE_MINT="batch"
+  QUEUE_MAXT="batch"
   QUEUE_GRAPHICS="batch"
   QUEUE_POST="batch"
   NCORES_PER_NODE=24
@@ -56,6 +64,8 @@ if [[ $MACHINE == "wcoss2" ]] ; then
   QUEUE_HPSS="dev_transfer"
   QUEUE_POST="pridev"
   QUEUE_PRDGEN="pridev"
+  QUEUE_MINT="pridev"
+  QUEUE_MAXT="pridev"
   QUEUE_GRAPHICS="pridev"
   if [[ $MACHINETYPE == "backup" ]] ; then
     QUEUE_DEFAULT="devhigh"
@@ -63,6 +73,8 @@ if [[ $MACHINE == "wcoss2" ]] ; then
     QUEUE_ANALYSIS="devmax"
     QUEUE_POST="devhigh"
     QUEUE_PRDGEN="devhigh"
+    QUEUE_MINT="devhigh"
+    QUEUE_MAXT="devhigh"
     QUEUE_GRAPHICS="devhigh"
   fi
 fi
@@ -110,6 +122,8 @@ MAXTRIES_SAVE_DA_OUTPUT="2"
 MAXTRIES_SAVE_RESTART="2"
 MAXTRIES_RUN_POST="2"
 MAXTRIES_RUN_PRDGEN="2"
+MAXTRIES_RUN_MINT="2"
+MAXTRIES_RUN_MAXT="2"
 
 WTIME_RUN_FCST="00:45:00"
 WTIME_RUN_FCST_LONG="03:45:00"
@@ -201,6 +215,8 @@ if [[ ${PREDEF_GRID_NAME} == "RRFS_CONUS_3km" ]] ; then
     TPP_RUN_ENKF="4"
     NNODES_RUN_ENKF="24"
     MEMO_RUN_PRDGEN="80G"
+    MEMO_RUN_MINT="80G"
+    MEMO_RUN_MAXT="80G"
     MEMO_RUN_PROCESSBUFR="80G"
     PPN_RUN_NONVARCLDANL="64"
     NNODES_RUN_NONVARCLDANL="10"
@@ -221,6 +237,8 @@ if [[ ${PREDEF_GRID_NAME} == "RRFS_CONUS_3km" ]] ; then
     MAXTRIES_ANAL_ENKF="1"
     MAXTRIES_RUN_POST="1"
     MAXTRIES_RUN_PRDGEN="1"
+    MAXTRIES_RUN_MINT="1"
+    MAXTRIES_RUN_MAXT="1"
     MAXTRIES_ANAL_GSI="1"
 
     WTIME_RUN_FCST="00:55:00"
@@ -252,6 +270,8 @@ if [[ ${PREDEF_GRID_NAME} == "RRFS_CONUS_3km" ]] ; then
     LAYOUT_Y="40"
     PPN_RUN_FCST="40"
     WTIME_RUN_PRDGEN="00:20:00"
+    WTIME_RUN_MINT="00:20:00"
+    WTIME_RUN_MAXT="00:20:00"
   fi
 fi
 
@@ -299,6 +319,8 @@ if [[ ${PREDEF_GRID_NAME} == "RRFS_CONUS_13km" ]] ; then
     WTIME_RUN_FCST_SPINUP="00:15:00"
     WTIME_RUN_POST="00:05:00"
     WTIME_RUN_PRDGEN="00:10:00"
+    WTIME_RUN_MINT="00:10:00"
+    WTIME_RUN_MAXT="00:10:00"
     WTIME_RUN_ANAL="00:20:00"
     WTIME_RUN_POSTANAL="00:10:00"
     WTIME_RUN_ENKF="00:10:00"
@@ -317,6 +339,8 @@ if [[ ${PREDEF_GRID_NAME} == "RRFS_CONUS_13km" ]] ; then
     MAXTRIES_ANAL_ENKF="2"
     MAXTRIES_RUN_POST="2"
     MAXTRIES_RUN_PRDGEN="2"
+    MAXTRIES_RUN_MINT="2"
+    MAXTRIES_RUN_MAXT="2"
     MAXTRIES_ANAL_GSI="2"
 
     FV3GFS_FILE_FMT_ICS="netcdf"
@@ -328,6 +352,8 @@ if [[ ${PREDEF_GRID_NAME} == "RRFS_CONUS_13km" ]] ; then
     LAYOUT_Y="40"
     PPN_RUN_FCST="40"
     WTIME_RUN_PRDGEN="00:20:00"
+    WTIME_RUN_MINT="00:20:00"
+    WTIME_RUN_MAXT="00:20:00"
   fi
  
   if [[ $MACHINE == "hera" ]] ; then
@@ -426,6 +452,8 @@ if [[ ${PREDEF_GRID_NAME} == "RRFS_NA_3km" ]] ; then
     PPN_RUN_NONVARCLDANL="128"
     NNODES_RUN_NONVARCLDANL="1"
     PPN_RUN_PRDGEN="128"
+    PPN_RUN_MINT="128"
+    PPN_RUN_MAXT="128"
     PPN_RUN_POSTANAL="8"
     PPN_RUN_GSIDIAG=128
     NNODES_RUN_BUFRSND="2"
@@ -439,6 +467,8 @@ if [[ ${PREDEF_GRID_NAME} == "RRFS_NA_3km" ]] ; then
     MAXTRIES_ANAL_ENKF="1"
     MAXTRIES_RUN_POST="1"
     MAXTRIES_RUN_PRDGEN="1"
+    MAXTRIES_RUN_MINT="1"
+    MAXTRIES_RUN_MAXT="1"
     MAXTRIES_ANAL_GSI="1"
 
     MEMO_RUN_NONVARCLDANL="256G"
@@ -448,6 +478,8 @@ if [[ ${PREDEF_GRID_NAME} == "RRFS_NA_3km" ]] ; then
     MEMO_SAVE_RESTART="120G"
     MEMO_SAVE_INPUT="120G"                                                                                                     
     MEMO_RUN_PRDGEN="256G"
+    MEMO_RUN_MINT="256G"
+    MEMO_RUN_MAXT="256G"
 
     START_TIME_SPINUP="01:05:00"
     START_TIME_PROD="02:20:00"

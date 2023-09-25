@@ -124,6 +124,7 @@ if [[ ! -L ${ushdir}/../fix/.agent || ! -e ${ushdir}/../fix/.agent ]] \
   && [ -e ${ushdir}/../Init.sh ]; then
     ${ushdir}/../Init.sh
 fi
+
 #
 #-----------------------------------------------------------------------
 #
@@ -190,6 +191,10 @@ settings="\
   'queue_analysis': ${QUEUE_ANALYSIS}
   'partition_prdgen': ${PARTITION_PRDGEN}
   'queue_prdgen': ${QUEUE_PRDGEN}
+  'partition_mint': ${PARTITION_MINT}
+  'queue_mint': ${QUEUE_MINT}
+  'partition_maxt': ${PARTITION_MAXT}
+  'queue_maxt': ${QUEUE_MAXT}
   'partition_post': ${PARTITION_POST}
   'queue_post': ${QUEUE_POST}
 #
@@ -207,6 +212,8 @@ settings="\
   'run_fcst_tn': ${RUN_FCST_TN}
   'run_post_tn': ${RUN_POST_TN}
   'run_prdgen_tn': ${RUN_PRDGEN_TN}
+  'run_mint_tn': ${RUN_MINT_TN}
+  'run_maxt_tn': ${RUN_MAXT_TN}
   'anal_gsi': ${ANAL_GSI_TN}
   'anal_gsidiag': ${ANAL_GSIDIAG_TN}
   'anal_sd_gsi': ${ANAL_SD_GSI_TN}
@@ -250,6 +257,8 @@ settings="\
   'nnodes_run_recenter': ${NNODES_RUN_RECENTER}
   'nnodes_run_post': ${NNODES_RUN_POST}
   'nnodes_run_prdgen': ${NNODES_RUN_PRDGEN}
+  'nnodes_run_mint': ${NNODES_RUN_MINT}
+  'nnodes_run_maxt': ${NNODES_RUN_MAXT}
   'nnodes_proc_radar': ${NNODES_PROC_RADAR}
   'nnodes_proc_lightning': ${NNODES_PROC_LIGHTNING}
   'nnodes_proc_bufr': ${NNODES_PROC_BUFR}
@@ -291,6 +300,8 @@ settings="\
   'ppn_run_recenter': ${PPN_RUN_RECENTER}
   'ppn_run_post': ${PPN_RUN_POST}
   'ppn_run_prdgen': ${PPN_RUN_PRDGEN}
+  'ppn_run_mint': ${PPN_RUN_MINT}
+  'ppn_run_maxt': ${PPN_RUN_MAXT}
   'ppn_proc_radar': ${PPN_PROC_RADAR}
   'ppn_proc_lightning': ${PPN_PROC_LIGHTNING}
   'ppn_proc_bufr': ${PPN_PROC_BUFR}
@@ -332,6 +343,8 @@ settings="\
   'wtime_run_post': ${WTIME_RUN_POST}
   'wtime_run_enspost': ${WTIME_RUN_ENSPOST}
   'wtime_run_prdgen': ${WTIME_RUN_PRDGEN}
+  'wtime_run_mint': ${WTIME_RUN_MINT}
+  'wtime_run_maxt': ${WTIME_RUN_MAXT}
   'wtime_proc_radar': ${WTIME_PROC_RADAR}
   'wtime_proc_lightning': ${WTIME_PROC_LIGHTNING}
   'wtime_proc_bufr': ${WTIME_PROC_BUFR}
@@ -360,6 +373,8 @@ settings="\
   'memo_run_nonvarcldanl': ${MEMO_RUN_NONVARCLDANL}
   'memo_run_prepstart': ${MEMO_RUN_PREPSTART}
   'memo_run_prdgen': ${MEMO_RUN_PRDGEN}
+  'memo_run_mint': ${MEMO_RUN_MINT}
+  'memo_run_maxt': ${MEMO_RUN_MAXT}
   'memo_run_jedienvar_ioda': ${MEMO_RUN_JEDIENVAR_IODA}
   'memo_prep_cyc': ${MEMO_PREP_CYC}
   'memo_save_restart': ${MEMO_SAVE_RESTART}
@@ -384,6 +399,8 @@ settings="\
   'maxtries_recenter': ${MAXTRIES_RECENTER}
   'maxtries_run_post': ${MAXTRIES_RUN_POST}
   'maxtries_run_prdgen': ${MAXTRIES_RUN_PRDGEN}
+  'maxtries_run_mint': ${MAXTRIES_RUN_MINT}
+  'maxtries_run_maxt': ${MAXTRIES_RUN_MAXT}
   'maxtries_process_radarref': ${MAXTRIES_PROCESS_RADARREF}
   'maxtries_process_lightning': ${MAXTRIES_PROCESS_LIGHTNING}
   'maxtries_process_bufr': ${MAXTRIES_PROCESS_BUFR}
@@ -505,6 +522,7 @@ settings="\
   'do_save_da_output': ${DO_SAVE_DA_OUTPUT}
   'do_gsidiag_offline': ${DO_GSIDIAG_OFFLINE}
   'do_save_input': ${DO_SAVE_INPUT}
+  'do_minmaxt': ${DO_MINMAXT}
 #
 # data assimilation related parameters.
 #
@@ -752,6 +770,27 @@ if [ "${DO_BUFRSND}" = "TRUE" ]; then
   the experiment generation script."
   fi
 fi
+
+
+if [ "${DO_MINMAXT}" = "TRUE" ]; then
+#
+#
+# Resolve the target directory that the FIXbufrsnd symlink points to
+#
+  ln_vrfy -fsn "$MINMAX_BINS" "$FIX_MINMAXT"
+
+  path_resolved=$( readlink -m "$FIX_MINMAXT" )
+  if [ ! -d "${path_resolved}" ]; then
+    print_err_msg_exit "\
+  Missing link to FIXsmokedust
+  RUN_ENVIR = \"${RUN_ENVIR}\"
+  FIX_MINMAXT = \"$FIX_MINMAXT\"
+  path_resolved = \"${path_resolved}\"
+  Please ensure that path_resolved is an existing directory and then rerun
+  the experiment generation script."
+  fi
+fi
+
 
 #
 
@@ -1365,7 +1404,6 @@ Done.
 "
 #
 echo -e "../fix/.agent points to " $(readlink -f ${HOMErrfs}/fix/.agent) "\n"
-
 #
 # If necessary, run the NOMADS script to source external model data.
 #

@@ -192,11 +192,12 @@ fi
 analworkdir_conv="${cycle_dir}/anal_conv${analworkname}"
 analworkdir_dbz="${cycle_dir}/anal_radardbz${analworkname}"
 
-loops="01 03"
+loops="01 02 03"
 for loop in $loops; do
 
 case $loop in
   01) string=ges;;
+  02) string=02;;
   03) string=anl;;
    *) string=$loop;;
 esac

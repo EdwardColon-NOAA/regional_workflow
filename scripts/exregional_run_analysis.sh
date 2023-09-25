@@ -1058,11 +1058,12 @@ if [ ${DO_GSIDIAG_OFFLINE} == "FALSE" ]; then
 netcdf_diag=${netcdf_diag:-".false."}
 binary_diag=${binary_diag:-".true."}
 
-loops="01 03"
+loops="01 02 03"
 for loop in $loops; do
 
 case $loop in
   01) string=ges;;
+  02) string=02;;
   03) string=anl;;
    *) string=$loop;;
 esac
@@ -1076,8 +1077,9 @@ if [ $binary_diag = ".true." ]; then
    for type in $listall; do
       count=$(ls pe*.${type}_${loop} | wc -l)
       if [[ $count -gt 0 ]]; then
-         $(cat pe*.${type}_${loop} > diag_${type}_${string}.${YYYYMMDDHH})
-         echo "diag_${type}_${string}.${YYYYMMDDHH}" >> listrad_bin
+         $(cat pe????.${type}_${loop} > diag_${type}_${string}.${YYYYMMDDHH})
+         cp diag_${type}_${string}.${YYYYMMDDHH} $comout
+	 echo "diag_${type}_${string}.${YYYYMMDDHH}" >> listrad_bin
          numfile_rad_bin=`expr ${numfile_rad_bin} + 1`
       fi
    done
@@ -1103,7 +1105,8 @@ if [ $netcdf_diag = ".true." ]; then
       if [[ $count -gt 0 ]]; then
          ${APRUN} ${nc_diag_cat} -o diag_${type}_${string}.${YYYYMMDDHH}.nc4 pe*.${type}_${loop}.nc4
          cp diag_${type}_${string}.${YYYYMMDDHH}.nc4 $comout
-         echo "diag_${type}_${string}.${YYYYMMDDHH}.nc4*" >> listrad
+         cp diag_${type}_${string}.${YYYYMMDDHH} $comout
+	 echo "diag_${type}_${string}.${YYYYMMDDHH}.nc4*" >> listrad
          numfile_rad=`expr ${numfile_rad} + 1`
       else
          echo 'No diag_' ${type} 'exist'

@@ -210,7 +210,7 @@ prslev=${net4}.t${cyc}z.prslev.f${fhr}.${gridname}grib2
 natlev=${net4}.t${cyc}z.natlev.f${fhr}.${gridname}grib2
 ififip=${net4}.t${cyc}z.ififip.f${fhr}.${gridname}grib2
 testbed=${net4}.t${cyc}z.testbed.f${fhr}.${gridname}grib2
-
+spc=${net4}.t${cyc}z.spc.f${fhr}.${gridname}grib2
 # extract the output fields for the testbed
 if [[ ! -z ${TESTBED_FIELDS_FN} ]]; then
   if [[ -f ${FIX_UPP}/${TESTBED_FIELDS_FN} ]]; then
@@ -227,6 +227,15 @@ if [[ ! -z ${TESTBED_FIELDS_FN2} ]]; then
   fi
 fi
 
+if [[ ! -z ${SPC_FIELDS_FN} ]]; then
+  if [[ -f ${FIX_UPP}/${SPC_FIELDS_FN} ]]; then
+    wgrib2 ${postprd_dir}/${prslev} | grep -F -f ${FIX_UPP}/${SPC_FIELDS_FN} | wgrib2 -i -grib ${postprd_dir}/${spc} ${postprd_dir}/${prslev}
+  else
+    echo "${FIX_UPP}/${SPC_FIELDS_FN} not found"
+  fi
+fi
+
+
 #Link output for transfer to Jet
 # Should the following be done only if on jet??
 
@@ -235,6 +244,7 @@ fi
 # space inserted between the dd and hh.  If so, just use "$yyyymmdd $hh"
 # instead of calling sed.
 
+
 basetime=$( date +%y%j%H%M -d "${yyyymmdd} ${hh}" )
 cp_vrfy ${postprd_dir}/${prslev} ${comout}/${prslev}
 cp_vrfy ${postprd_dir}/${natlev} ${comout}/${natlev}
@@ -242,13 +252,14 @@ if [ -f  ${postprd_dir}/${ififip} ]; then
   cp_vrfy ${postprd_dir}/${ififip} ${comout}/${ififip}
 fi
 cp_vrfy ${postprd_dir}/${testbed}  ${comout}/${testbed}
-
+cp_vrfy ${postprd_dir}/${spc} ${comout}/${spc}
 wgrib2 ${comout}/${prslev} -s > ${comout}/${prslev}.idx
 wgrib2 ${comout}/${natlev} -s > ${comout}/${natlev}.idx
 if [ -f ${comout}/${ififip} ]; then
   wgrib2 ${comout}/${ififip} -s > ${comout}/${ififip}.idx
 fi
 wgrib2 ${comout}/${testbed} -s > ${comout}/${testbed}.idx
+wgrib2 ${comout}/${spc} -s > ${comout}/${spc}.idx
 # Remap to additional output grids if requested
 
 if [ ${DO_PARALLEL_PRDGEN} == "TRUE" ]; then
@@ -329,6 +340,7 @@ mv ${comout}/rrfs.t${cyc}z.prslev.f${fhr}.conus.grib2.idx ${comout}/rrfs.t${cyc}
 # create testbed files on 3-km CONUS grid
 prslev_conus=${net4}.t${cyc}z.prslev.f${fhr}.conus_3km.grib2
 testbed_conus=${net4}.t${cyc}z.testbed.f${fhr}.conus_3km.grib2
+spc_conus=${net4}.t${cyc}z.spc.f${fhr}.conus_3km.grib2
 if [[ ! -z ${TESTBED_FIELDS_FN} ]]; then
   if [[ -f ${FIX_UPP}/${TESTBED_FIELDS_FN} ]]; then
     wgrib2 ${comout}/${prslev_conus} | grep -F -f ${FIX_UPP}/${TESTBED_FIELDS_FN} | wgrib2 -i -grib ${comout}/${testbed_conus} ${comout}/${prslev_conus}
@@ -336,6 +348,15 @@ if [[ ! -z ${TESTBED_FIELDS_FN} ]]; then
     echo "${FIX_UPP}/${TESTBED_FIELDS_FN} not found"
   fi
 fi
+
+if [[ ! -z ${SPC_FIELDS_FN} ]]; then
+  if [[ -f ${FIX_UPP}/${SPC_FIELDS_FN} ]]; then
+   wgrib2 ${comout}/${prslev_conus} | grep -F -f ${FIX_UPP}/${SPC_FIELDS_FN} | wgrib2 -i -grib ${comout}/${spc_conus} ${comout}/${prslev_conus}
+  else
+   echo "${FIX_UPP}/${SPC_FIELDS_FN} not found"
+  fi
+fi
+
 
 else
   echo "this grid is not ready for parallel prdgen: ${PREDEF_GRID_NAME}"
@@ -365,7 +386,7 @@ if [ ${#ADDNL_OUTPUT_GRIDS[@]} -gt 0 ]; then
 
   for grid in ${ADDNL_OUTPUT_GRIDS[@]}
   do
-    for leveltype in prslev natlev ififip testbed
+    for leveltype in prslev natlev ififip testbed spc
     do
       
       eval grid_specs=\$grid_specs_${grid}
