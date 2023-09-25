@@ -319,8 +319,8 @@ if [[ "$MACHINE" == "wcoss2" ]]; then
   ENKF_FCST="/lfs/h1/ops/prod/com/gfs/v16.3"
   LIGHTNING_ROOT="/lfs/h1/ops/prod/com/obsproc/v1.1"
 
-  STMP="/lfs/h2/emc/ptmp/${USER}/3D-RTMA/rtma.${version}_test/stmp"
-  PTMP="/lfs/h2/emc/ptmp/${USER}/3D-RTMA/rtma.${version}_test"
-  NWGES="/lfs/h2/emc/ptmp/${USER}/3D-RTMA/rtma.${version}_test/nwges"
+  STMP="/lfs/h2/emc/ptmp/${USER}/3D-RTMA/rtma.${version}/stmp"
+  PTMP="/lfs/h2/emc/ptmp/${USER}/3D-RTMA/rtma.${version}"
+  NWGES="/lfs/h2/emc/ptmp/${USER}/3D-RTMA/rtma.${version}/nwges"
 fi
 
