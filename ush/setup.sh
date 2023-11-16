@@ -493,6 +493,8 @@ optionList[23]=DO_ENS_RADDA
 optionList[24]=DO_GSIDIAG_OFFLINE
 optionList[25]=USE_CLM
 optionList[26]=DO_PM_DA
+optionList[27]=DO_MINMAXT
+
 
 obs_number=${#optionList[@]}
 for (( i=0; i<${obs_number}; i++ ));
@@ -540,6 +542,8 @@ case $MACHINE in
     QUEUE_FCST=${QUEUE_FCST:-"dev"}
     QUEUE_ANALYSIS=${QUEUE_ANALYSIS:-"dev"}
     QUEUE_PRDGEN=${QUEUE_PRDGEN:-"dev"}
+    QUEUE_MINT=${QUEUE_MINT:-"dev"}
+    QUEUE_MAXT=${QUEUE_MAXT:-"dev"}
     QUEUE_POST=${QUEUE_POST:-"dev"}
     ;;
 
@@ -553,6 +557,8 @@ case $MACHINE in
     PARTITION_FCST=${PARTITION_FCST:-"hera"}
     QUEUE_FCST=${QUEUE_FCST:-"batch"}
     QUEUE_PRDGEN=${QUEUE_PRDGEN:-"batch"}
+    QUEUE_MINT=${QUEUE_MINT:-"dev"}
+    QUEUE_MAXT=${QUEUE_MAXT:-"dev"}
     QUEUE_POST=${QUEUE_POST:-"batch"}
     ;;
 
@@ -584,6 +590,11 @@ case $MACHINE in
     QUEUE_PRDGEN=${QUEUE_PRDGEN:-"batch"}
     PARTITION_POST=${PARTITION_POST:-"sjet,vjet,kjet,xjet"}
     QUEUE_POST=${QUEUE_POST:-"batch"}
+    PARTITION_MINT=${PARTITION_MINT:-"sjet,vjet,kjet,xjet"}
+    QUEUE_MINT==${QUEUE_MINT:-"batch"}
+    PARTITION_MAXT=${PARTITION_MAXT:-"sjet,vjet,kjet,xjet"}
+    QUEUE_MAXT==${QUEUE_MAXT:-"batch"}
+
     ;;
 
   "ODIN")
@@ -844,6 +855,7 @@ if [ "${RUN_ENVIR}" = "nco" ]; then
   FIX_GSI=${FIX_GSI:-"${HOMErrfs}/fix/gsi"}
   FIX_UPP=${FIX_UPP:-"${HOMErrfs}/fix/upp"}
   FIX_CRTM=${FIX_CRTM:-"${CRTM_FIX}"}
+  FIX_MINMAXT=${FIX_MINMAXT:-"${HOMErrfs}/fix/minmaxt"}
   FIX_UPP_CRTM=${FIX_UPP_CRTM:-"${CRTM_FIX}"}
   FIX_SMOKE_DUST=${FIX_SMOKE_DUST:-"${HOMErrfs}/fix/smoke_dust"}
   FIX_BUFRSND=${FIX_BUFRSND:-"${HOMErrfs}/fix/bufrsnd"}
@@ -2674,7 +2686,8 @@ SFC_CLIMO_INPUT_DIR="${SFC_CLIMO_INPUT_DIR}"
 TOPO_DIR="${TOPO_DIR}"
 EMC_POST_DIR="${EMC_POST_DIR}"
 PYTHON_GRAPHICS_DIR="${PYTHON_GRAPHICS_DIR}"
-
+NDATE=/apps/ops/prod/nco/core/prod_util.v2.0.8/exec/ndate
+MDATE=/apps/ops/prod/nco/core/prod_util.v2.0.8/exec/mdate
 ARCHIVEDIR="${ARCHIVEDIR}"
 NCARG_ROOT="${NCARG_ROOT}"
 NCL_HOME="${NCL_HOME}"
@@ -2705,6 +2718,7 @@ FIX_CRTM="${FIX_CRTM}"
 FIX_UPP_CRTM="${FIX_UPP_CRTM}"
 FIX_SMOKE_DUST="${FIX_SMOKE_DUST}"
 FIX_BUFRSND="${FIX_BUFRSND}"
+FIX_MINMAXT="${FIX_MINMAXT}"
 AIRCRAFT_REJECT="${AIRCRAFT_REJECT}"
 SFCOBS_USELIST="${SFCOBS_USELIST}"
 

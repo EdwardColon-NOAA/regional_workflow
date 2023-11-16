@@ -272,7 +272,6 @@ if [[ "$MACHINE" == "wcoss2" ]]; then
   OBSPATH_NSSLMOSIAC="/lfs/h1/ops/prod/dcom/ldmdata/obs/upperair/mrms/conus/MergedReflectivityQC"
   AIRCRAFT_REJECT="/lfs/h2/emc/da/noscrub/edward.colon/NOAA_3drtma_legacy/fix/obsuselist/amdar_reject_lists"
   SFCOBS_USELIST="/lfs/h2/emc/da/noscrub/edward.colon/NOAA_3drtma_legacy/fix/obsuselist/mesonet_uselists"
- 
   regional_ensemble_option=1
   USE_RRFSE_ENS="FALSE"
   CYCL_HRS_HYB_FV3LAM_ENS=("99")
@@ -299,6 +298,7 @@ if [[ "$MACHINE" == "wcoss2" ]]; then
 
 
   FG_ROOTDIR="/lfs/h2/emc/ptmp/emc.lam/rrfs/conus/nwges"
+  RRFS_GRIBDIR="/lfs/h2/emc/ptmp/emc.lam/rrfs/v0.7.1/prod" 
   OBSPATH="/lfs/h1/ops/prod/com/obsproc/v1.1"
   ENKF_FCST="/lfs/h1/ops/prod/com/gfs/v16.3"
   LIGHTNING_ROOT="/lfs/h1/ops/prod/com/obsproc/v1.1"
