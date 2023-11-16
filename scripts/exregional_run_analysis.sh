@@ -424,7 +424,11 @@ if [ ${BKTYPE} -eq 1 ]; then  # cold start uses background from INPUT
 else                          # cycle uses background from restart
   if [ "${IO_LAYOUT_Y}" == "1" ]; then
     ln_vrfy  -snf ${bkpath}/fv_core.res.tile1.nc             fv3_dynvars
-    ln_vrfy  -snf ${bkpath}/fv_tracer.res.tile1.nc           fv3_tracer
+    if [ ${anav_type} == "AERO" ]; then
+      cp_vrfy ${bkpath}/fv_tracer.res.tile1.nc               fv3_tracer
+    else
+      ln_vrfy  -snf ${bkpath}/fv_tracer.res.tile1.nc         fv3_tracer
+    fi
     ln_vrfy  -snf ${bkpath}/sfc_data.nc                      fv3_sfcdata
     ln_vrfy  -snf ${bkpath}/phy_data.nc                      fv3_phyvars
   else
@@ -432,10 +436,15 @@ else                          # cycle uses background from restart
     do
       iii=`printf %4.4i $ii`
       ln_vrfy  -snf ${bkpath}/fv_core.res.tile1.nc.${iii}     fv3_dynvars.${iii}
-      ln_vrfy  -snf ${bkpath}/fv_tracer.res.tile1.nc.${iii}   fv3_tracer.${iii}
+      if [ ${anav_type} == "AERO" ]; then
+        cp_vrfy ${bkpath}/fv_tracer.res.tile1.nc.${iii}       fv3_tracer.${iii}
+      else
+        ln_vrfy  -snf ${bkpath}/fv_tracer.res.tile1.nc.${iii} fv3_tracer.${iii}
+      fi
       ln_vrfy  -snf ${bkpath}/sfc_data.nc.${iii}              fv3_sfcdata.${iii}
       ln_vrfy  -snf ${bkpath}/phy_data.nc.${iii}              fv3_phyvars.${iii}
       ln_vrfy  -snf ${gridspec_dir}/fv3_grid_spec.${iii}      fv3_grid_spec.${iii}
+
     done
   fi
   fv3lam_bg_type=0
@@ -538,7 +547,13 @@ else
 
 
   if [ ${anav_type} == "AERO" ]; then
-    obs_files_source[0]=${OBSPATH_PM}/${YYYYMMDD}/pm25.airnow.${YYYYMMDD}${HH}.bufr
+# for previous retro runs
+#    obs_files_source[0]=${OBSPATH_PM}/${YYYYMMDD}/pm25.airnow.${YYYYMMDD}${HH}.bufr
+    if [ ${cycle_type} == "spinup" ]; then
+      obs_files_source[0]=${cycle_dir}/process_pm_spinup/pm.bufr
+    else
+      obs_files_source[0]=${cycle_dir}/process_pm/pm.bufr
+    fi 
     obs_files_target[0]=pm25bufr
   fi
 
@@ -702,6 +717,7 @@ if [[ ${gsi_type} == "ANALYSIS" && ${anav_type} == "AERO" ]]; then
   miter=1
   niter1=100
   niter2=0
+  write_diag_2=.true.
   ifhyb=.false.
   ifsd_da=.true.
   l_hyb_ens=.false.
@@ -713,7 +729,9 @@ if [[ ${gsi_type} == "ANALYSIS" && ${anav_type} == "AERO" ]]; then
   binary_diag=.false.
   usenewgfsberror=.false.
   laeroana_fv3smoke=.true.
+#remove cmaq when GSL GSI is update in future
   berror_fv3_cmaq_regional=.true.
+  berror_fv3_sd_regional=.true.
 fi
 
 SATINFO=${FIX_GSI}/global_satinfo.txt
@@ -853,7 +871,7 @@ if [ ${DO_RADDA} == "TRUE" ]; then
 	  
       # For EnVar
       if [ -r ${satbias_dir}/rrfs.${spinup_or_prod_rrfs}.${SAT_TIME}_satbias ]; then
-        echo " using satellite bias files from ${SAT_TIME}"
+        echo " using satellite bias files from ${satbias_dir} ${spinup_or_prod_rrfs}.${SAT_TIME}"
 
         cp_vrfy ${satbias_dir}/rrfs.${spinup_or_prod_rrfs}.${SAT_TIME}_satbias ./satbias_in
         cp_vrfy ${satbias_dir}/rrfs.${spinup_or_prod_rrfs}.${SAT_TIME}_satbias_pc ./satbias_pc
@@ -867,6 +885,48 @@ if [ ${DO_RADDA} == "TRUE" ]; then
     fi
     satcounter=` expr $satcounter + 1 `
   done
+
+  ## if satbias files (go back to previous 10 dyas) are not available from ${satbias_dir}, use satbias files from the ${FIX_GSI} 
+  ## now check if there are satbias files in continue cycle data space
+  if [ $satcounter -eq $maxcounter ]; then
+    satcounter=1
+    maxcounter=240
+    satbias_dir_cont=${CONT_CYCLE_DATA_ROOT}/satbias
+    while [ $satcounter -lt $maxcounter ]; do
+      SAT_TIME=`date +"%Y%m%d%H" -d "${START_DATE}  ${satcounter} hours ago"`
+      echo $SAT_TIME
+	
+      if [ ${DO_ENS_RADDA} == "TRUE" ]; then	
+		
+      # For EnKF.  Note, EnKF does not need radstat file
+        if [ -r ${satbias_dir_cont}_ensmean/rrfs.${spinup_or_prod_rrfs}.${SAT_TIME}_satbias ]; then
+          echo " using satellite bias files from ${SAT_TIME}"
+        
+          cp_vrfy ${satbias_dir_cont}_ensmean/rrfs.${spinup_or_prod_rrfs}.${SAT_TIME}_satbias ./satbias_in
+          cp_vrfy ${satbias_dir_cont}_ensmean/rrfs.${spinup_or_prod_rrfs}.${SAT_TIME}_satbias_pc ./satbias_pc
+	    
+          break
+        fi
+	  
+      else	
+	  
+      # For EnVar
+        if [ -r ${satbias_dir_cont}/rrfs.${spinup_or_prod_rrfs}.${SAT_TIME}_satbias ]; then
+          echo " using satellite bias files from ${satbias_dir_cont} ${spinup_or_prod_rrfs}.${SAT_TIME}"
+
+          cp_vrfy ${satbias_dir_cont}/rrfs.${spinup_or_prod_rrfs}.${SAT_TIME}_satbias ./satbias_in
+          cp_vrfy ${satbias_dir_cont}/rrfs.${spinup_or_prod_rrfs}.${SAT_TIME}_satbias_pc ./satbias_pc
+          if [ -r ${satbias_dir_cont}/rrfs.${spinup_or_prod_rrfs}.${SAT_TIME}_radstat ]; then
+             cp_vrfy ${satbias_dir_cont}/rrfs.${spinup_or_prod_rrfs}.${SAT_TIME}_radstat ./radstat.rrfs
+          fi
+
+          break
+        fi
+	
+      fi
+      satcounter=` expr $satcounter + 1 `
+    done
+  fi
 
   ## if satbias files (go back to previous 10 dyas) are not available from ${satbias_dir}, use satbias files from the ${FIX_GSI} 
   if [ $satcounter -eq $maxcounter ]; then
@@ -982,12 +1042,16 @@ fi
 #
 # comment out for testing
 
+if [ ${BKTYPE} -eq 1 ] && [ $MACHINE == "WCOSS2" ]; then
+  echo " skip cold start GSI for now on WCOSS2"
+else
 $APRUN ./gsi.x < gsiparm.anl > stdout 2>&1 ;  errcode=$?
 echo "----------------------begin of stdout--------------"
 cat ./stdout  #log stdout whether gsi.x succeeds or not
 echo "----------------------end of stdout----------------"
 [ $errcode -eq 0 ]  || print_err_msg_exit "\
 Call to executable to run GSI returned with nonzero exit code."
+fi
 
 if [ ${anav_type} == "radardbz" ]; then
   cat fort.238 > $comout/rrfs_a.t${HH}z.fits3.tm00
@@ -1073,7 +1137,7 @@ numfile_rad_bin=0
 numfile_cnv=0
 numfile_rad=0
 if [ $binary_diag = ".true." ]; then
-   listall="hirs2_n14 msu_n14 sndr_g08 sndr_g11 sndr_g11 sndr_g12 sndr_g13 sndr_g08_prep sndr_g11_prep sndr_g12_prep sndr_g13_prep sndrd1_g11 sndrd2_g11 sndrd3_g11 sndrd4_g11 sndrd1_g15 sndrd2_g15 sndrd3_g15 sndrd4_g15 sndrd1_g13 sndrd2_g13 sndrd3_g13 sndrd4_g13 hirs3_n15 hirs3_n16 hirs3_n17 amsua_n15 amsua_n16 amsua_n17 amsua_n18 amsua_n19 amsua_metop-a amsua_metop-b amsua_metop-c amsub_n15 amsub_n16 amsub_n17 hsb_aqua airs_aqua amsua_aqua imgr_g08 imgr_g11 imgr_g12 pcp_ssmi_dmsp pcp_tmi_trmm conv sbuv2_n16 sbuv2_n17 sbuv2_n18 omi_aura ssmi_f13 ssmi_f14 ssmi_f15 hirs4_n18 hirs4_metop-a mhs_n18 mhs_n19 mhs_metop-a mhs_metop-b mhs_metop-c amsre_low_aqua amsre_mid_aqua amsre_hig_aqua ssmis_las_f16 ssmis_uas_f16 ssmis_img_f16 ssmis_env_f16 iasi_metop-a iasi_metop-b iasi_metop-c seviri_m08 seviri_m09 seviri_m10 seviri_m11 cris_npp atms_npp ssmis_f17 cris-fsr_npp cris-fsr_n20 atms_n20 abi_g16 abi_g17 radardbz"
+   listall="hirs2_n14 msu_n14 sndr_g08 sndr_g11 sndr_g11 sndr_g12 sndr_g13 sndr_g08_prep sndr_g11_prep sndr_g12_prep sndr_g13_prep sndrd1_g11 sndrd2_g11 sndrd3_g11 sndrd4_g11 sndrd1_g15 sndrd2_g15 sndrd3_g15 sndrd4_g15 sndrd1_g13 sndrd2_g13 sndrd3_g13 sndrd4_g13 hirs3_n15 hirs3_n16 hirs3_n17 amsua_n15 amsua_n16 amsua_n17 amsua_n18 amsua_n19 amsua_metop-a amsua_metop-b amsua_metop-c amsub_n15 amsub_n16 amsub_n17 hsb_aqua airs_aqua amsua_aqua imgr_g08 imgr_g11 imgr_g12 pcp_ssmi_dmsp pcp_tmi_trmm conv sbuv2_n16 sbuv2_n17 sbuv2_n18 omi_aura ssmi_f13 ssmi_f14 ssmi_f15 hirs4_n18 hirs4_metop-a mhs_n18 mhs_n19 mhs_metop-a mhs_metop-b mhs_metop-c amsre_low_aqua amsre_mid_aqua amsre_hig_aqua ssmis_las_f16 ssmis_uas_f16 ssmis_img_f16 ssmis_env_f16 iasi_metop-a iasi_metop-b iasi_metop-c seviri_m08 seviri_m09 seviri_m10 seviri_m11 cris_npp atms_npp ssmis_f17 cris-fsr_npp cris-fsr_n20 atms_n20 abi_g16 abi_g18 radardbz atms_n21 cris-fsr_n21"
    for type in $listall; do
       count=$(ls pe*.${type}_${loop} | wc -l)
       if [[ $count -gt 0 ]]; then
@@ -1088,7 +1152,7 @@ fi
 if [ $netcdf_diag = ".true." ]; then
    nc_diag_cat="nc_diag_cat.x"
    listall_cnv="conv_ps conv_q conv_t conv_uv conv_pw conv_rw conv_sst conv_dbz"
-   listall_rad="hirs2_n14 msu_n14 sndr_g08 sndr_g11 sndr_g11 sndr_g12 sndr_g13 sndr_g08_prep sndr_g11_prep sndr_g12_prep sndr_g13_prep sndrd1_g11 sndrd2_g11 sndrd3_g11 sndrd4_g11 sndrd1_g15 sndrd2_g15 sndrd3_g15 sndrd4_g15 sndrd1_g13 sndrd2_g13 sndrd3_g13 sndrd4_g13 hirs3_n15 hirs3_n16 hirs3_n17 amsua_n15 amsua_n16 amsua_n17 amsua_n18 amsua_n19 amsua_metop-a amsua_metop-b amsua_metop-c amsub_n15 amsub_n16 amsub_n17 hsb_aqua airs_aqua amsua_aqua imgr_g08 imgr_g11 imgr_g12 pcp_ssmi_dmsp pcp_tmi_trmm conv sbuv2_n16 sbuv2_n17 sbuv2_n18 omi_aura ssmi_f13 ssmi_f14 ssmi_f15 hirs4_n18 hirs4_metop-a mhs_n18 mhs_n19 mhs_metop-a mhs_metop-b mhs_metop-c amsre_low_aqua amsre_mid_aqua amsre_hig_aqua ssmis_las_f16 ssmis_uas_f16 ssmis_img_f16 ssmis_env_f16 iasi_metop-a iasi_metop-b iasi_metop-c seviri_m08 seviri_m09 seviri_m10 seviri_m11 cris_npp atms_npp ssmis_f17 cris-fsr_npp cris-fsr_n20 atms_n20 abi_g16"
+   listall_rad="hirs2_n14 msu_n14 sndr_g08 sndr_g11 sndr_g11 sndr_g12 sndr_g13 sndr_g08_prep sndr_g11_prep sndr_g12_prep sndr_g13_prep sndrd1_g11 sndrd2_g11 sndrd3_g11 sndrd4_g11 sndrd1_g15 sndrd2_g15 sndrd3_g15 sndrd4_g15 sndrd1_g13 sndrd2_g13 sndrd3_g13 sndrd4_g13 hirs3_n15 hirs3_n16 hirs3_n17 amsua_n15 amsua_n16 amsua_n17 amsua_n18 amsua_n19 amsua_metop-a amsua_metop-b amsua_metop-c amsub_n15 amsub_n16 amsub_n17 hsb_aqua airs_aqua amsua_aqua imgr_g08 imgr_g11 imgr_g12 pcp_ssmi_dmsp pcp_tmi_trmm conv sbuv2_n16 sbuv2_n17 sbuv2_n18 omi_aura ssmi_f13 ssmi_f14 ssmi_f15 hirs4_n18 hirs4_metop-a mhs_n18 mhs_n19 mhs_metop-a mhs_metop-b mhs_metop-c amsre_low_aqua amsre_mid_aqua amsre_hig_aqua ssmis_las_f16 ssmis_uas_f16 ssmis_img_f16 ssmis_env_f16 iasi_metop-a iasi_metop-b iasi_metop-c seviri_m08 seviri_m09 seviri_m10 seviri_m11 cris_npp atms_npp ssmis_f17 cris-fsr_npp cris-fsr_n20 atms_n20 abi_g16 abi_g18 atms_n21 cris-fsr_n21"
 
    for type in $listall_cnv; do
       count=$(ls pe*.${type}_${loop}.nc4 | wc -l)

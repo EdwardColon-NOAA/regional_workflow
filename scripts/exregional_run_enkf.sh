@@ -59,7 +59,7 @@ specified cycle.
 #
 #-----------------------------------------------------------------------
 #
-valid_args=( "cycle_dir" "cycle_type" "enkfworkdir" "NWGES_DIR" "ob_type" )
+valid_args=( "cycle_dir" "cycle_type" "enkfworkdir" "NWGES_DIR" "comout" "ob_type" )
 process_args valid_args "$@"
 
 cycle_type=${cycle_type:-prod}
@@ -77,10 +77,6 @@ case $MACHINE in
   export OMP_PROC_BIND=close
   export OMP_PLACES=threads
   export MPICH_RANK_REORDER_METHOD=0
-  if [ ${PREDEF_GRID_NAME} = "RRFS_CONUS_3km" ]; then
-    export OMP_STACKSIZE=1G
-    export OMP_NUM_THREADS=1
-  fi
   ncores=$(( NNODES_RUN_ENKF*PPN_RUN_ENKF ))
   APRUN="mpiexec -n ${ncores} -ppn ${PPN_RUN_ENKF} --label --line-buffer --cpu-bind core --depth ${OMP_NUM_THREADS}"
   ;;
@@ -380,7 +376,7 @@ use_gfs_nemsio=.true.,
 	lobsdiag_forenkf=.false.,
 	write_spread_diag=.false.,
 	netcdf_diag=${netcdf_diag:-.false.},
-        fv3_native=.true.,
+	fv3_native=.true.,
 	/
 	&satobs_enkf
 	sattypes_rad(1) = 'amsua_n15',     dsis(1) = 'amsua_n15',
@@ -435,18 +431,33 @@ use_gfs_nemsio=.true.,
 	sattypes_rad(50)= 'seviri_m08',    dsis(50)= 'seviri_m08',
 	sattypes_rad(51)= 'seviri_m09',    dsis(51)= 'seviri_m09',
 	sattypes_rad(52)= 'seviri_m10',    dsis(52)= 'seviri_m10',
-	sattypes_rad(53)= 'amsua_metop-b', dsis(53)= 'amsua_metop-b',
-	sattypes_rad(54)= 'hirs4_metop-b', dsis(54)= 'hirs4_metop-b',
-	sattypes_rad(55)= 'mhs_metop-b',   dsis(55)= 'mhs_metop-b',
-	sattypes_rad(56)= 'iasi_metop-b',  dsis(56)= 'iasi_metop-b',
-	sattypes_rad(57)= 'avhrr_metop-b', dsis(57)= 'avhrr3_metop-b',
-	sattypes_rad(58)= 'atms_npp',      dsis(58)= 'atms_npp',
-	sattypes_rad(59)= 'atms_n20',      dsis(59)= 'atms_n20',
-	sattypes_rad(60)= 'cris_npp',      dsis(60)= 'cris_npp',
-	sattypes_rad(61)= 'cris-fsr_npp',  dsis(61)= 'cris-fsr_npp',
-	sattypes_rad(62)= 'cris-fsr_n20',  dsis(62)= 'cris-fsr_n20',
-	sattypes_rad(63)= 'gmi_gpm',       dsis(63)= 'gmi_gpm',
-	sattypes_rad(64)= 'saphir_meghat', dsis(64)= 'saphir_meghat',
+	sattypes_rad(53)= 'seviri_m11',    dsis(53)= 'seviri_m11',
+	sattypes_rad(54)= 'amsua_metop-b', dsis(54)= 'amsua_metop-b',
+	sattypes_rad(55)= 'hirs4_metop-b', dsis(55)= 'hirs4_metop-b',
+	sattypes_rad(56)= 'mhs_metop-b',   dsis(56)= 'mhs_metop-b',
+	sattypes_rad(57)= 'iasi_metop-b',  dsis(57)= 'iasi_metop-b',
+	sattypes_rad(58)= 'avhrr_metop-b', dsis(58)= 'avhrr3_metop-b',
+	sattypes_rad(59)= 'atms_npp',      dsis(59)= 'atms_npp',
+	sattypes_rad(60)= 'atms_n20',      dsis(60)= 'atms_n20',
+	sattypes_rad(61)= 'cris_npp',      dsis(61)= 'cris_npp',
+	sattypes_rad(62)= 'cris-fsr_npp',  dsis(62)= 'cris-fsr_npp',
+	sattypes_rad(63)= 'cris-fsr_n20',  dsis(63)= 'cris-fsr_n20',
+	sattypes_rad(64)= 'gmi_gpm',       dsis(64)= 'gmi_gpm',
+	sattypes_rad(65)= 'saphir_meghat', dsis(65)= 'saphir_meghat',
+	sattypes_rad(66)= 'amsua_metop-c', dsis(66)= 'amsua_metop-c',
+	sattypes_rad(67)= 'mhs_metop-c',   dsis(67)= 'mhs_metop-c',
+	sattypes_rad(68)= 'ahi_himawari8', dsis(68)= 'ahi_himawari8',
+	sattypes_rad(69)= 'abi_g16',       dsis(69)= 'abi_g16',
+	sattypes_rad(70)= 'abi_g17',       dsis(70)= 'abi_g17',
+	sattypes_rad(71)= 'iasi_metop-c',  dsis(71)= 'iasi_metop-c',
+	sattypes_rad(72)= 'viirs-m_npp',   dsis(72)= 'viirs-m_npp',
+	sattypes_rad(73)= 'viirs-m_j1',    dsis(73)= 'viirs-m_j1',
+	sattypes_rad(74)= 'avhrr_metop-c', dsis(74)= 'avhrr3_metop-c',
+	sattypes_rad(75)= 'abi_g18',       dsis(75)= 'abi_g18',
+	sattypes_rad(76)= 'ahi_himawari9', dsis(76)= 'ahi_himawari9',
+	sattypes_rad(77)= 'viirs-m_j2',    dsis(77)= 'viirs-m_j2',
+	sattypes_rad(78)= 'atms_n21',      dsis(78)= 'atms_n21',
+	sattypes_rad(79)= 'cris-fsr_n21',  dsis(79)= 'cris-fsr_n21',
 	/
 	&ozobs_enkf
 	sattypes_oz(1) = 'sbuv2_n16',
@@ -496,23 +507,18 @@ fi
 countdiag=$(ls diag*conv* | wc -l)
 if [ $countdiag -gt $nens ]; then
 
-    if [ ${ob_type} == "conv" ]; then
 ${APRUN}  $enkfworkdir/enkf.x < enkf.nml 1>${stdout_name} 2>${stderr_name} || print_err_msg_exit "\
 Call to executable to run EnKF returned with nonzero exit code."
 
-
 cp_vrfy ${stdout_name} ${enkfanal_nwges_dir}/.
 cp_vrfy ${stderr_name} ${enkfanal_nwges_dir}/.
+cp_vrfy ${stdout_name} ${comout}/enkf.${stdout_name}
+cp_vrfy ${stderr_name} ${comout}/enkf.${stderr_name}
 if [ ! -d ${NWGES_DIR}/../enkf_diag ]; then
   mkdir -p ${NWGES_DIR}/../enkf_diag
 fi
 cp_vrfy ${stdout_name} ${NWGES_DIR}/../enkf_diag/${stdout_name}.$vlddate
 cp_vrfy ${stderr_name} ${NWGES_DIR}/../enkf_diag/${stderr_name}.$vlddate
-    else
-${APRUN}  $enkfworkdir/enkf.x < enkf.nml 1>${stdout_name} 2>${stderr_name} || print_err_msg_exit "\
-Call to executable to run EnKF returned with nonzero exit code."
-       echo "Warning: EnKF dbz analysis due to lack of ${ob_type} obs for cycle $vlddate !!!"
-    fi
 
 else
   echo "Warning: EnKF not running due to lack of ${ob_type} obs for cycle $vlddate !!!"

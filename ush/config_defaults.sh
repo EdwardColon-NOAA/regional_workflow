@@ -320,6 +320,10 @@ EXPT_SUBDIR=""
 #   RAPHRR_SOIL_ROOT: locations of RAP/HRRR forecast netcdf files
 #   SOIL_SURGERY_time: cycle time for soil surgery 
 #
+# Setup default data locations for cycle surface/bias correction coefficient
+#   smoke/dust during machine switch and version update
+#   CONT_CYCLE_DATA_ROOT: locations of surface, bias correction coefficient files
+#
 # Setup default locations for FIRE_RRFS files and update time
 #  FIRE_RAVE_DIR
 #  FIRE_RRFS_ROOT
@@ -365,6 +369,7 @@ SOIL_SURGERY_time=9999999999
 FIRE_RAVE_DIR="/lfs4/BMC/public/data/grids/nesdis/3km_fire_emissions"
 FIRE_RRFS_ROOT="/mnt/lfs4/BMC/gsd-fv3-dev/FIRE_RRFS_ROOT"
 FIRE_RRFS_update_hour=99
+CONT_CYCLE_DATA_ROOT="/lfs/h2/emc/lam/noscrub/emc.lam/nwges"
 
 #
 #-----------------------------------------------------------------------
@@ -598,6 +603,8 @@ DA_CYCLE_INTERV="1"
 RESTART_INTERVAL="1 2"
 RESTART_INTERVAL_LONG="1 2"
 CYCL_HRS_HYB_FV3LAM_ENS=( "99" )
+FIRST_BLENDED_CYCLE="18"
+FIRST_BLENDED_CYCLE_DATE="YYYYMMDDHH"
 
 #-----------------------------------------------------------------------
 #
@@ -726,9 +733,11 @@ i_use_2mT4B=0
 i_T_Q_adjust=1
 l_rtma3d=.false.
 i_precip_vertical_check=0
+l_cld_uncertainty=.false.
 #  &CHEM 
 laeroana_fv3smoke=.false.
 berror_fv3_cmaq_regional=.false.
+berror_fv3_sd_regional=.false.
 #-----------------------------------------------------------------------
 # HYBENSMEM_NMIN:
 #    Minimum number of ensemble members required a hybrid GSI analysis 
@@ -1298,6 +1307,9 @@ OUTPUT_FH="-1"
 # WRTCMP_write_tasks_per_group:
 # The number of MPI tasks to allocate for each write group.
 #
+# WRTCMP_output_file:
+# The output file format.
+#
 # PRINT_ESMF:
 # Flag for whether or not to output extra (debugging) information from
 # ESMF routines.  Must be "TRUE" or "FALSE".  Note that the write
@@ -1313,6 +1325,7 @@ PRINT_ESMF="FALSE"
 
 WRTCMP_write_groups="1"
 WRTCMP_write_tasks_per_group="20"
+WRTCMP_output_file="netcdf"
 
 WRTCMP_output_grid="''"
 WRTCMP_cen_lon=""
@@ -1627,6 +1640,12 @@ FIXgsm_FILES_TO_COPY_TO_FIXam=( \
 "fix_co2_proj/global_co2historicaldata_2016.txt" \
 "fix_co2_proj/global_co2historicaldata_2017.txt" \
 "fix_co2_proj/global_co2historicaldata_2018.txt" \
+"fix_co2_proj/global_co2historicaldata_2019.txt" \
+"fix_co2_proj/global_co2historicaldata_2020.txt" \
+"fix_co2_proj/global_co2historicaldata_2021.txt" \
+"fix_co2_proj/global_co2historicaldata_2022.txt" \
+"fix_co2_proj/global_co2historicaldata_2023.txt" \
+"fix_co2_proj/global_co2historicaldata_2024.txt" \
 "global_co2historicaldata_glob.txt" \
 "co2monthlycyc.txt" \
 "global_h2o_pltc.f77" \
@@ -1676,6 +1695,12 @@ CYCLEDIR_LINKS_TO_FIXam_FILES_MAPPING=( \
 "co2historicaldata_2016.txt | fix_co2_proj/global_co2historicaldata_2016.txt" \
 "co2historicaldata_2017.txt | fix_co2_proj/global_co2historicaldata_2017.txt" \
 "co2historicaldata_2018.txt | fix_co2_proj/global_co2historicaldata_2018.txt" \
+"co2historicaldata_2019.txt | fix_co2_proj/global_co2historicaldata_2019.txt" \
+"co2historicaldata_2020.txt | fix_co2_proj/global_co2historicaldata_2020.txt" \
+"co2historicaldata_2021.txt | fix_co2_proj/global_co2historicaldata_2021.txt" \
+"co2historicaldata_2022.txt | fix_co2_proj/global_co2historicaldata_2022.txt" \
+"co2historicaldata_2023.txt | fix_co2_proj/global_co2historicaldata_2023.txt" \
+"co2historicaldata_2024.txt | fix_co2_proj/global_co2historicaldata_2024.txt" \
 "co2historicaldata_glob.txt | global_co2historicaldata_glob.txt" \
 "co2monthlycyc.txt          | co2monthlycyc.txt" \
 "global_h2oprdlos.f77       | global_h2o_pltc.f77" \
@@ -1731,6 +1756,7 @@ PROCESS_LIGHTNING_TN="process_lightning"
 RADAR_REF_THINNING="1"
 PROCESS_BUFR_TN="process_bufr"
 PROCESS_SMOKE_TN="process_smoke"
+PROCESS_PM_TN="process_pm"
 RADAR_REFL2TTEN_TN="radar_refl2tten"
 CLDANL_NONVAR_TN="cldanl_nonvar"
 SAVE_RESTART_TN="save_restart"
@@ -1761,6 +1787,7 @@ NNODES_PROC_RADAR="2"
 NNODES_PROC_LIGHTNING="1"
 NNODES_PROC_BUFR="1"
 NNODES_PROC_SMOKE="1"
+NNODES_PROC_PM="1"
 NNODES_RUN_REF2TTEN="1"
 NNODES_RUN_NONVARCLDANL="1"
 NNODES_RUN_GRAPHICS="1"
@@ -1802,6 +1829,7 @@ PPN_PROC_RADAR="24"
 PPN_PROC_LIGHTNING="1"
 PPN_PROC_BUFR="1"
 PPN_PROC_SMOKE="1"
+PPN_PROC_PM="1"
 PPN_RUN_REF2TTEN="1"
 PPN_RUN_NONVARCLDANL="1"
 PPN_RUN_GRAPHICS="12"
@@ -1846,6 +1874,7 @@ WTIME_PROC_RADAR="00:25:00"
 WTIME_PROC_LIGHTNING="00:25:00"
 WTIME_PROC_BUFR="00:25:00"
 WTIME_PROC_SMOKE="00:25:00"
+WTIME_PROC_PM="00:25:00"
 WTIME_RUN_REF2TTEN="00:20:00"
 WTIME_RUN_NONVARCLDANL="00:20:00"
 WTIME_RUN_BUFRSND="00:45:00"
@@ -1863,6 +1892,7 @@ START_TIME_CONVENTIONAL="00:40:00"
 START_TIME_NSSLMOSIAC="00:45:00"
 START_TIME_LIGHTNINGNC="00:45:00"
 START_TIME_PROCSMOKE="00:45:00"
+START_TIME_PROCPM="00:45:00"
 
 #
 # Memory.
@@ -1879,6 +1909,7 @@ MEMO_PREP_CYC="40G"
 MEMO_SAVE_RESTART="40G"
 MEMO_SAVE_INPUT="40G"
 MEMO_PROC_SMOKE="40G"
+MEMO_PROC_PM="40G"
 MEMO_SAVE_DA_OUTPUT="40G"
 #
 # Maximum number of attempts.
@@ -1906,6 +1937,7 @@ MAXTRIES_PROCESS_RADARREF="1"
 MAXTRIES_PROCESS_LIGHTNING="1"
 MAXTRIES_PROCESS_BUFR="1"
 MAXTRIES_PROCESS_SMOKE="1"
+MAXTRIES_PROCESS_PM="1"
 MAXTRIES_RADAR_REF2TTEN="1"
 MAXTRIES_CLDANL_NONVAR="1"
 MAXTRIES_SAVE_RESTART="1"
@@ -2090,6 +2122,28 @@ TILE_SETS="full"
 # 'DO_ENS_RADDA="TRUE"', the radiance DA must be true, i.e., 'DO_RADDA="TRUE"'.  This 
 # is because the radiance DA in EnKF relies the radiance procedures in the GSI-observer, 
 # which is mainly controled by DO_RADDA.
+#
+# DO_ENS_BLENDING:
+# Flag that can enable two things:
+#	1) large-scale blending during initialization.
+#	2) activate cold2warm start only (replaces ensinit step).
+# When this is activated there are two other flags that are relevant:
+#	1) BLEND
+#	2) USE_HOST_ENKF
+#
+# BLEND: Only relevant when DO_ENS_BLENDING=TRUE. Flag to perform large scale
+# blending during initialization. If this is set to "TRUE", then the RRFS
+# EnKF will be blended with the external model ICS using the Raymond filter
+# (a low-pass, sixth-order implicit tangent filter).
+# TRUE:  Blend RRFS and GDAS EnKF
+# FALSE: Don't blend, activate cold2warm start only, and use either GDAS or
+#        RRFS; default
+#
+# USE_HOST_ENKF: Only relevant when DO_ENS_BLENDING=TRUE and BLEND=FALSE.
+# Flag for which EnKF to use during cold2warm start conversion.
+# TRUE:  Final EnKF will be GDAS (no blending); default
+# FALSE: Final EnKF will be RRFS (no blending)
+#
 #-----------------------------------------------------------------------
 #
 DO_ENSEMBLE="FALSE"
@@ -2109,6 +2163,10 @@ DO_ENSINIT="FALSE"
 DO_SAVE_DA_OUTPUT="FALSE"
 DO_GSIDIAG_OFFLINE="FALSE"
 DO_ENS_RADDA="FALSE"
+DO_ENS_BLENDING="FALSE"
+ENS_BLENDING_LENGTHSCALE="960" # (Lx) in kilometers
+BLEND="FALSE"
+USE_HOST_ENKF="TRUE"
 #
 #-----------------------------------------------------------------------
 #
@@ -2116,9 +2174,6 @@ DO_ENS_RADDA="FALSE"
 #
 # DO_DACYCLE:
 # Flag that determines whether to run a data assimilation cycle.
-#
-# DO_SDDACYCLE:
-# Flag that determines whether to run a SMOKE and DUST data assimilation cycle.
 #
 # DO_SURFACE_CYCLE:
 # Flag that determines whether to continue cycle surface fields.
@@ -2153,7 +2208,6 @@ DO_ENS_RADDA="FALSE"
 # Use CLM mode in the model
 #-----------------------------------------------------------------------
 DO_DACYCLE="FALSE"
-DO_SDDACYCLE="FALSE"
 DO_SURFACE_CYCLE="FALSE"
 SURFACE_CYCLE_DELAY_HRS="1"
 DO_SOIL_ADJUST="FALSE"
@@ -2162,6 +2216,7 @@ DO_RADDA="FALSE"
 DO_BUFRSND="FALSE"
 USE_RRFSE_ENS="FALSE"
 DO_SMOKE_DUST="FALSE"
+DO_PM_DA="FALSE"
 USE_CLM="FALSE"
 #
 #-----------------------------------------------------------------------
@@ -2394,6 +2449,7 @@ DO_NONVAR_CLDANAL="FALSE"
 DO_REFL2TTEN="FALSE"
 DO_NLDN_LGHT="FALSE"
 DO_SMOKE_DUST="FALSE"
+DO_PM_DA="FALSE"
 #
 #-----------------------------------------------------------------------
 #
